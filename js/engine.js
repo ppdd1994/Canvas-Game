@@ -24,11 +24,9 @@ var Engine = (function(global) {
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         lastTime;
-
     canvas.width = 505;
     canvas.height = 606;
     doc.body.appendChild(canvas);
-
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
      */
@@ -80,7 +78,7 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        checkCollisions();
     }
 
     /* This is called by the update function and loops through all of the
@@ -135,7 +133,6 @@ var Engine = (function(global) {
                 ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
             }
         }
-
         renderEntities();
     }
 
@@ -152,6 +149,7 @@ var Engine = (function(global) {
         });
 
         player.render();
+        stats.render();
     }
 
     /* This function does nothing but it could have been a good place to
@@ -160,18 +158,47 @@ var Engine = (function(global) {
      */
     function reset() {
         // noop
+        player.reset();
+        enemies.reset(); 
+        stats.reset();
+        
     }
 
+
+    function checkCollisions(){
+         function collision(a, b) {
+              return a.x < b.x + b.width &&
+                     a.x + a.width > b.x &&
+                     a.y < b.y + b.height &&
+                     a.y + a.height > b.y;
+            }
+        allEnemies.forEach(function(enemy) {
+            if(collision(player, enemy)) {
+                  if (player.live > 1) {
+                    player.hit();
+                }else{
+                    stats.gameover();
+                    reset();
+                };
+            }
+        });
+        if(player.y < 20) {
+                    level.updateLevel();
+        }
+    }
+    
     /* Go ahead and load all of the images we know we're going to need to
      * draw our game level. Then set init as the callback method, so that when
      * all of these images are properly loaded our game will start.
      */
+
     Resources.load([
         'images/stone-block.png',
         'images/water-block.png',
         'images/grass-block.png',
         'images/enemy-bug.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+        'images/stat-heart.png'
     ]);
     Resources.onReady(init);
 
